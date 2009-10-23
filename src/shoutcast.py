@@ -16,7 +16,7 @@ class ShoutCast(object):
         """
 
         self.url_downloader = url_downloader
-        
+
         self.genre_url = 'http://yp.shoutcast.com/sbin/newxml.phtml'
         self.station_url = 'http://yp.shoutcast.com/sbin/newxml.phtml?genre={0}'
         self.tune_in_url = 'http://yp.shoutcast.com/sbin/tunein-station.pls?id={0}'
@@ -24,15 +24,14 @@ class ShoutCast(object):
 
     def genres(self):
         """ Return a tuple with genres. """
-        content = self.url_downloader(self.genre_url)
-        genrelist = etree.XML(content)
+        genrelist = self._parse_xml(self.genre_url)
         return tuple(genre.get('name') for genre in genrelist.findall('genre'))
 
     def stations(self, genre):
         """ Return a tuple with stations for the specified genre. """
         url = self.station_url.format(genre)
-        content = self.url_downloader(url)
-        return self._parse_stations(content)
+        stationlist = self._parse_xml(url)
+        return self._generate_stations(stationlist)
 
     def search(self, criteria, limit=-1):
         """ 
@@ -43,13 +42,13 @@ class ShoutCast(object):
             criteria = '{0}&limit={1}'.format(criteria, limit)
 
         url = self.search_url.format(criteria)
-        content = self.url_downloader(url)
-        return self._parse_stations(content)
+        stationlist = self._parse_xml(url)
+        return self._generate_stations(stationlist)
 
     def random(self):
         """ Return a tuple with 20 random stations. """
         return self.stations('random')
-    
+
     def top_500(self):
         """ Return a tuple with the top 500 stations. """
         return self.stations('Top500')
@@ -59,12 +58,18 @@ class ShoutCast(object):
         url = self.tune_in_url.format(station_id)
         return self.url_downloader(url)
 
-    def _parse_stations(self, content):
-        """ Return a tuple with stations for the specified genre. """
-        stationlist = etree.XML(content)
+    def _parse_xml(self, url):
+        """
+        Returns an etree Element by downloading and parsing the XML at the
+        specified URL.
+        """
+        content = self.url_downloader(url)
+        return etree.XML(content)
 
+    def _generate_stations(self, stationlist):
+        """ Return a tuple with stations traversing the stationlist element tree. """
         result = []
-        
+
         for station in stationlist.findall('station'):
             entry = (station.get('name'),
                      station.get('id'),
