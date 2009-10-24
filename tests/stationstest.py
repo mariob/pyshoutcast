@@ -4,57 +4,79 @@ import stationdata
 
 class RandomTest(unittest.TestCase):
 
-    def mockStations(self, genre):
-        self.requestedGenre = genre
-        pass
+    def mock_stations(self, genre):
+        self.requested_genre = genre
 
-    def setUp(self):
+    def test_random(self):
+        """ Verify that random() delegates to stations() """
         self.shoutcast = shoutcast.ShoutCast(None)
-        self.shoutcast.stations = self.mockStations
+        self.shoutcast.stations = self.mock_stations
 
-    def tearDown(self):
-        self.shoutcast = None
-
-    def testRandom(self):
         actual = self.shoutcast.random()
-        self.assertEquals('random', self.requestedGenre)
+        self.assertEquals('random', self.requested_genre)
 
 
 class Top500Test(unittest.TestCase):
 
-    def mockStations(self, genre):
-        self.requestedGenre = genre
+    def mock_stations(self, genre):
+        self.requested_genre = genre
         pass
 
-    def setUp(self):
+    def test_top500(self):
+        """ Verify that top500() delegates to stations() """
         self.shoutcast = shoutcast.ShoutCast(None)
-        self.shoutcast.stations = self.mockStations
+        self.shoutcast.stations = self.mock_stations
 
-    def tearDown(self):
-        self.shoutcast = None
-
-    def testTop500(self):
         actual = self.shoutcast.top_500()
-        self.assertEquals('Top500', self.requestedGenre)
+        self.assertEquals('Top500', self.requested_genre)
 
 
 class StationTest(unittest.TestCase):
 
-    def url_downloader(self, url):
-        self.requestedUrl = url
-        return stationdata.create_stations_xml(stationdata.expected_stations)
-    
+    def mock_generate_stations(self, url):
+        self.generate_stations_called = True
+        self.requested_url = url
+
     def setUp(self):
+        self.generate_stations_called = False
+        self.shoutcast = shoutcast.ShoutCast(None)
+        self.shoutcast._generate_stations = self.mock_generate_stations
+    
+    def tearDown(self):
+        self.shoutcast = None
+
+    def test_stations_url(self):
+        """ Verify that stations() formats URLs correctly """
+        expected_url = 'http://yp.shoutcast.com/sbin/newxml.phtml?genre=Rock'
+        self.shoutcast.stations('Rock')
+        self.assertEquals(expected_url, self.requested_url)
+
+        expected_url = 'http://yp.shoutcast.com/sbin/newxml.phtml?genre=Pop'
+        self.shoutcast.stations('Pop')
+        self.assertEquals(expected_url, self.requested_url)
+
+    def test_stations(self):
+        """ Verify that stations() delegates to _generate_stations() """
+        self.shoutcast.stations('Rock')
+        self.assertTrue(self.generate_stations_called)
+
+class GenerateStationsTest(unittest.TestCase):
+
+    def url_downloader(self, url):
+        return self.stations_data
+
+    def setUp(self):
+        self.stations_data = stationdata.create_stations_xml(stationdata.expected_stations)
         self.shoutcast = shoutcast.ShoutCast(self.url_downloader)
 
     def tearDown(self):
         self.shoutcast = None
 
-    def testStations(self):
-        expectedUrl = 'http://yp.shoutcast.com/sbin/newxml.phtml?genre=Rock'
-        actual_stations = self.shoutcast.stations('Rock')
-        self.assertEquals(expectedUrl, self.requestedUrl)
-        self.assertEquals(stationdata.expected_stations, actual_stations)
+    def test_empty_stations(self):
+        self.stations_data = '<stationlist></stationlist>'
+        expected = ()
+        actual = self.shoutcast.stations('Rock')
+        self.assertEquals(expected, actual)
 
 if __name__ == "__main__":
     unittest.main()

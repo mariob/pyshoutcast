@@ -4,21 +4,32 @@ import stationdata
 
 class SearchTest(unittest.TestCase):
 
-    def url_downloader(self, url):
-        self.requestedUrl = url
-        return stationdata.create_stations_xml(stationdata.expected_stations)
-    
+    def mock_generate_stations(self, url):
+        self.generate_stations_called = True
+        self.requested_url = url
+
     def setUp(self):
-        self.shoutcast = shoutcast.ShoutCast(self.url_downloader)
+        self.generate_stations_called = False
+        self.shoutcast = shoutcast.ShoutCast(None)
+        self.shoutcast._generate_stations = self.mock_generate_stations
 
     def tearDown(self):
         self.shoutcast = None
 
-    def testStations(self):
-        expectedUrl = 'http://yp.shoutcast.com/sbin/newxml.phtml?search=Radio station'
-        actual_stations = self.shoutcast.search('Radio station')
-        self.assertEquals(expectedUrl, self.requestedUrl)
-        self.assertEquals(stationdata.expected_stations, actual_stations)
+    def test_search_url(self):
+        """ Verify that search() formats URLs correctly """
+        expected_url = 'http://yp.shoutcast.com/sbin/newxml.phtml?search=Radio station'
+        self.shoutcast.search('Radio station')
+        self.assertEquals(expected_url, self.requested_url)
+
+        expected_url = 'http://yp.shoutcast.com/sbin/newxml.phtml?search=Keywords&limit=10'
+        self.shoutcast.search('Keywords', 10)
+        self.assertEquals(expected_url, self.requested_url)
+
+    def test_search(self):
+        """ Verify that search() delegates to _generate_stations() """
+        self.shoutcast.search('')
+        self.assertTrue(self.generate_stations_called)
 
 if __name__ == "__main__":
     unittest.main()

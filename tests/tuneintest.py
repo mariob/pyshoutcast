@@ -13,7 +13,7 @@ Version=2
 class TuneInTest(unittest.TestCase):
 
     def url_downloader(self, url):
-        self.requestedUrl = url
+        self.requested_url = url
         return valid_pls
 
     def setUp(self):
@@ -22,11 +22,15 @@ class TuneInTest(unittest.TestCase):
     def tearDown(self):
         self.shoutcast = None
 
-    def testTune_in(self):
-        expectedUrl = 'http://yp.shoutcast.com/sbin/tunein-station.pls?id=1234'
+    def test_tune_in_urls(self):
+        """ Verify that tune_in() formats URLs correctly """
+        expected_url = 'http://yp.shoutcast.com/sbin/tunein-station.pls?id=1234'
         actual = self.shoutcast.tune_in('1234')
+        self.assertEquals(expected_url, self.requested_url)
 
-        self.assertEquals(expectedUrl, self.requestedUrl)
+    def test_tune_in(self):
+        """ Verify that tune_in() returns a play list """
+        actual = self.shoutcast.tune_in('1234')
         self.assertEquals(valid_pls, actual)
 
 if __name__ == "__main__":

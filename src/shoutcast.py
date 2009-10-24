@@ -25,13 +25,13 @@ class ShoutCast(object):
     def genres(self):
         """ Return a tuple with genres. """
         genrelist = self._parse_xml(self.genre_url)
-        return tuple(genre.get('name') for genre in genrelist.findall('genre'))
+        return tuple(genre.get('name')
+                     for genre in genrelist.findall('genre') if genre.get('name'))
 
     def stations(self, genre):
         """ Return a tuple with stations for the specified genre. """
         url = self.station_url.format(genre)
-        stationlist = self._parse_xml(url)
-        return self._generate_stations(stationlist)
+        return self._generate_stations(url)
 
     def search(self, criteria, limit=-1):
         """ 
@@ -42,8 +42,7 @@ class ShoutCast(object):
             criteria = '{0}&limit={1}'.format(criteria, limit)
 
         url = self.search_url.format(criteria)
-        stationlist = self._parse_xml(url)
-        return self._generate_stations(stationlist)
+        return self._generate_stations(url)
 
     def random(self):
         """ Return a tuple with 20 random stations. """
@@ -66,8 +65,9 @@ class ShoutCast(object):
         content = self.url_downloader(url)
         return etree.XML(content)
 
-    def _generate_stations(self, stationlist):
+    def _generate_stations(self, url):
         """ Return a tuple with stations traversing the stationlist element tree. """
+        stationlist = self._parse_xml(url)
         result = []
 
         for station in stationlist.findall('station'):
