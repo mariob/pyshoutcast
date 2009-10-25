@@ -2,7 +2,18 @@ import xml.etree.ElementTree as etree
 import urllib2
 
 class ShoutCast(object):
-    """ Manages shoutcast requests. """
+    """
+    Python front-end to the shoutcast web-radio service.
+    
+    This class uses urllib2.urlopen() when accessing the shoutcast service.
+    Any errors that might occur while accessing the service will be propagated
+    to the caller without any modifications.
+    
+    The shoutcast service uses XML as protocol and to parse the result from
+    the service the ElementTree XML API is used. Any errors that might occur
+    while parsing the XML will be propagated to the caller without any
+    modifications. 
+    """
 
     def __init__(self):
         """ Creates a Shoutcast API instance """
@@ -13,13 +24,28 @@ class ShoutCast(object):
         self.search_url = 'http://yp.shoutcast.com/sbin/newxml.phtml?search={0}'
 
     def genres(self):
-        """ Return a tuple with genres. """
+        """
+        Return a tuple with genres.
+        Each entry in the tuple is a string with the name of the genre.
+        
+        Example:
+        ('Rock', 'Pop', '...')
+        """
         genrelist = self._parse_xml(self.genre_url)
         return tuple(genre.get('name')
                      for genre in genrelist.findall('genre') if genre.get('name'))
 
     def stations(self, genre):
-        """ Return a tuple with stations for the specified genre. """
+        """
+        Return a tuple with stations for the specified genre.
+        Each entry in the tuple is a tulpe with the following content:
+        station name, station id, bitrate, currently playing track and
+        listener count
+
+        Example:
+        (('Hit Radio Station #1', 1234, 128, 'An artist - A Hit song', 123),
+         ('Hit Radio Station #2', 5678, 256, 'A track name', 43)) 
+        """
         url = self.station_url.format(genre)
         return self._generate_stations(url)
 
@@ -27,6 +53,8 @@ class ShoutCast(object):
         """ 
         Searches station name, current playing track and genre.
         To limit the result specify 'limit' to the number of items to return.
+        
+        Returns the same kind of tuple as stations()
         """
         if limit > 0:
             criteria = '{0}&limit={1}'.format(criteria, limit)
@@ -35,11 +63,12 @@ class ShoutCast(object):
         return self._generate_stations(url)
 
     def random(self):
-        """ Return a tuple with 20 random stations. """
+        """ Return a tuple (same as stations()) with 20 random stations. """
+
         return self.stations('random')
 
     def top_500(self):
-        """ Return a tuple with the top 500 stations. """
+        """ Return a tuple (same as stations()) with the top 500 stations. """
         return self.stations('Top500')
 
     def tune_in(self, station_id):
@@ -49,7 +78,7 @@ class ShoutCast(object):
 
     def _parse_xml(self, url):
         """
-        Returns an etree Element by downloading and parsing the XML from the
+        Returns an ElementTree element by downloading and parsing the XML from the
         specified URL.
         """
         file = urllib2.urlopen(url)
