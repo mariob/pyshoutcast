@@ -10,7 +10,7 @@ class SearchTest(unittest.TestCase):
 
     def setUp(self):
         self.generate_stations_called = False
-        self.shoutcast = shoutcast.ShoutCast(None)
+        self.shoutcast = shoutcast.ShoutCast()
         self.shoutcast._generate_stations = self.mock_generate_stations
 
     def tearDown(self):

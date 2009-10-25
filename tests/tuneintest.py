@@ -1,5 +1,7 @@
 import unittest
 import shoutcast
+import urllib2
+import StringIO
 
 valid_pls = """
 [playlist]
@@ -12,14 +14,17 @@ Version=2
 
 class TuneInTest(unittest.TestCase):
 
-    def url_downloader(self, url):
+    def mock_urlopen(self, url):
         self.requested_url = url
-        return valid_pls
+        return StringIO.StringIO(valid_pls)
 
     def setUp(self):
-        self.shoutcast = shoutcast.ShoutCast(self.url_downloader)
+        self.old_urlopen = urllib2.urlopen
+        urllib2.urlopen = self.mock_urlopen
+        self.shoutcast = shoutcast.ShoutCast()
 
     def tearDown(self):
+        urllib2.urlopen = self.old_urlopen
         self.shoutcast = None
 
     def test_tune_in_urls(self):
@@ -31,7 +36,7 @@ class TuneInTest(unittest.TestCase):
     def test_tune_in(self):
         """ Verify that tune_in() returns a play list """
         actual = self.shoutcast.tune_in('1234')
-        self.assertEquals(valid_pls, actual)
+        self.assertEquals(valid_pls, actual.read())
 
 if __name__ == "__main__":
     unittest.main()

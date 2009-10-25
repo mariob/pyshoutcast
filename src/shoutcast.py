@@ -1,21 +1,11 @@
 import xml.etree.ElementTree as etree
+import urllib2
 
 class ShoutCast(object):
     """ Manages shoutcast requests. """
 
-    def __init__(self, url_downloader):
-        """
-        Specify which url_downloader to be used for this instance.
-
-        A 'url_downloader' is simply a function that takes a URL (string) as argument
-        and returns the content for that URL.
-
-        Example:
-        def urllib2_downloader(url):
-            return urllib2.urlopen(url).read()
-        """
-
-        self.url_downloader = url_downloader
+    def __init__(self):
+        """ Creates a Shoutcast API instance """
 
         self.genre_url = 'http://yp.shoutcast.com/sbin/newxml.phtml'
         self.station_url = 'http://yp.shoutcast.com/sbin/newxml.phtml?genre={0}'
@@ -53,17 +43,17 @@ class ShoutCast(object):
         return self.stations('Top500')
 
     def tune_in(self, station_id):
-        """ Return the station's play list (shoutcast pls) as a string. """
+        """ Return the station's play list (shoutcast pls) as a file-like object. """
         url = self.tune_in_url.format(station_id)
-        return self.url_downloader(url)
+        return urllib2.urlopen(url)
 
     def _parse_xml(self, url):
         """
-        Returns an etree Element by downloading and parsing the XML at the
+        Returns an etree Element by downloading and parsing the XML from the
         specified URL.
         """
-        content = self.url_downloader(url)
-        return etree.XML(content)
+        file = urllib2.urlopen(url)
+        return etree.parse(file)
 
     def _generate_stations(self, url):
         """ Return a tuple with stations traversing the stationlist element tree. """

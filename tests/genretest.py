@@ -1,5 +1,7 @@
 import unittest
 import shoutcast
+import StringIO
+import urllib2
 
 valid_genre = """
 <genrelist>
@@ -11,15 +13,18 @@ valid_genre = """
 
 class GenreTest(unittest.TestCase):
 
-    def url_downloader(self, url):
+    def mock_urlopen(self, url):
         self.requested_url = url
-        return self.genre_data
+        return StringIO.StringIO(self.genre_data)
 
     def setUp(self):
         self.genre_data = valid_genre
-        self.shoutcast = shoutcast.ShoutCast(url_downloader=self.url_downloader)
+        self.old_urlopen = urllib2.urlopen
+        urllib2.urlopen = self.mock_urlopen
+        self.shoutcast = shoutcast.ShoutCast()
 
     def tearDown(self):
+        urllib2.urlopen = self.old_urlopen
         self.shoutcast = None
         self.genre_data = None
 

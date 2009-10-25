@@ -1,6 +1,8 @@
 import unittest
 import shoutcast
 import stationdata
+import StringIO
+import urllib2
 
 class RandomTest(unittest.TestCase):
 
@@ -9,7 +11,7 @@ class RandomTest(unittest.TestCase):
 
     def test_random(self):
         """ Verify that random() delegates to stations() """
-        self.shoutcast = shoutcast.ShoutCast(None)
+        self.shoutcast = shoutcast.ShoutCast()
         self.shoutcast.stations = self.mock_stations
 
         actual = self.shoutcast.random()
@@ -24,7 +26,7 @@ class Top500Test(unittest.TestCase):
 
     def test_top500(self):
         """ Verify that top500() delegates to stations() """
-        self.shoutcast = shoutcast.ShoutCast(None)
+        self.shoutcast = shoutcast.ShoutCast()
         self.shoutcast.stations = self.mock_stations
 
         actual = self.shoutcast.top_500()
@@ -39,7 +41,7 @@ class StationTest(unittest.TestCase):
 
     def setUp(self):
         self.generate_stations_called = False
-        self.shoutcast = shoutcast.ShoutCast(None)
+        self.shoutcast = shoutcast.ShoutCast()
         self.shoutcast._generate_stations = self.mock_generate_stations
     
     def tearDown(self):
@@ -62,14 +64,17 @@ class StationTest(unittest.TestCase):
 
 class GenerateStationsTest(unittest.TestCase):
 
-    def url_downloader(self, url):
-        return self.stations_data
+    def mock_urlopen(self, url):
+        return StringIO.StringIO(self.stations_data)
 
     def setUp(self):
         self.stations_data = stationdata.create_stations_xml(stationdata.expected_stations)
-        self.shoutcast = shoutcast.ShoutCast(self.url_downloader)
+        self.old_urlopen = urllib2.urlopen
+        urllib2.urlopen = self.mock_urlopen
+        self.shoutcast = shoutcast.ShoutCast()
 
     def tearDown(self):
+        urllib2.urlopen = self.old_urlopen
         self.shoutcast = None
 
     def test_empty_stations(self):
