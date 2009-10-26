@@ -3,6 +3,7 @@
 # Copyright (C) 2009 Mario Boikov <mario@beblue.org>.
 
 import xml.etree.ElementTree as etree
+import urllib
 import urllib2
 
 class ShoutCast(object):
@@ -25,7 +26,7 @@ class ShoutCast(object):
         self.genre_url = 'http://yp.shoutcast.com/sbin/newxml.phtml'
         self.station_url = 'http://yp.shoutcast.com/sbin/newxml.phtml?genre={0}'
         self.tune_in_url = 'http://yp.shoutcast.com/sbin/tunein-station.pls?id={0}'
-        self.search_url = 'http://yp.shoutcast.com/sbin/newxml.phtml?search={0}'
+        self.search_url = 'http://yp.shoutcast.com/sbin/newxml.phtml?{0}'
 
     def genres(self):
         """
@@ -60,10 +61,11 @@ class ShoutCast(object):
         
         Returns the same kind of tuple as stations()
         """
+        params = {'search' : criteria}
         if limit > 0:
-            criteria = '{0}&limit={1}'.format(criteria, limit)
+            params['limit'] = limit
 
-        url = self.search_url.format(criteria)
+        url = self.search_url.format(urllib.urlencode(params))
         return self._generate_stations(url)
 
     def random(self):

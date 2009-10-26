@@ -18,7 +18,7 @@ class SearchTest(unittest.TestCase):
 
     def test_search_url(self):
         """ Verify that search() formats URLs correctly """
-        expected_url = 'http://yp.shoutcast.com/sbin/newxml.phtml?search=Radio station'
+        expected_url = 'http://yp.shoutcast.com/sbin/newxml.phtml?search=Radio+station'
         self.shoutcast.search('Radio station')
         self.assertEquals(expected_url, self.requested_url)
 
