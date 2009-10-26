@@ -1,4 +1,4 @@
-Python Shoutcast API v0.7.0 copyright (C) Mario Boikov
+Python Shoutcast API v0.7.1 copyright (C) Mario Boikov
 
 Pyshoutcast is a Python front-end to the Shoutcast (http://www.shoutcast.com)
 web-radio service. Pyshoutcast implements all functions available in the
