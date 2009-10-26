@@ -1,3 +1,7 @@
+# This code is licensed under the new-BSD license
+# (http://www.opensource.org/licenses/bsd-license.php)
+# Copyright (C) 2009 Mario Boikov <mario@beblue.org>.
+
 import xml.etree.ElementTree as etree
 import urllib2
 
